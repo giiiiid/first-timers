@@ -30,5 +30,5 @@ class Forms(Base):
     url = Column(String)
 
     author_id = Column(Integer, ForeignKey("admin.id"))
-    owner = relationship("Admin", back_populates="admin_owner")
+    owner = relationship("Admin", back_populates="admin_forms")
 

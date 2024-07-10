@@ -11,7 +11,7 @@ class AdminDetails(BaseModel):
 
 
 class AdminIn(AdminDetails):
-    hashed_password: str
+    password: str
 
 
 class AdminOut(AdminDetails):
@@ -26,7 +26,7 @@ class AdminForms(BaseModel):
     email: EmailStr
     phone_number: str
     residence: str
-    room_number = Optional[str]
+    room_number: Optional[str]
     likes: Optional[str]
     dislikes: Optional[str]
     brought_by: str

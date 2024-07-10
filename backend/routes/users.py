@@ -13,7 +13,7 @@ users = APIRouter()
 # admin creation
 @users.post("/v1/admin/create", response_model=AdminOut, tags=["Admin"])
 async def create_admin(userin: AdminIn, db: Session = Depends(get_db)):
-    hash_pwd = get_password_hash(userin.hashed_password)
+    hash_pwd = get_password_hash(userin.password)
     new_admin = Admin(
         first_name = userin.first_name, last_name = userin.last_name,
         email = userin.email, role = userin.role, password = hash_pwd
@@ -35,7 +35,7 @@ async def login(form_data: LoginDb, db: Session = Depends(get_db)):
     if not admin:
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,
-            details = "Incorrect username or password"
+            detail = "Incorrect username or password"
         )
     verified_password = verify_password(form_data.password, admin.password)
     if not verified_password:
