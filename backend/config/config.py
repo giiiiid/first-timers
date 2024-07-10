@@ -1,4 +1,5 @@
 from db.databaseConnect import SessionLocal
+from fastapi.security import oauth2
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -32,3 +33,12 @@ class Settings:
     DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
     
 settings = Settings()
+
+
+
+# Oauth setup
+oauth2_scheme = oauth2.OAuth2PasswordBearer(tokenUrl="token")
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRES_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRES_MINUTES")

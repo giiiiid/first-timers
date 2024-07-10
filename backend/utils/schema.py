@@ -30,3 +30,9 @@ class AdminForms(BaseModel):
     likes: Optional[str]
     dislikes: Optional[str]
     brought_by: str
+
+
+
+class LoginDb(BaseModel):
+    email: EmailStr
+    password: str
