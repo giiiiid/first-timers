@@ -40,3 +40,8 @@ class FormsModel(BaseModel):
     dislikes: Optional[str]
     brought_by: str
 
+
+# Tokendata BaseModel
+class TokenData(BaseModel):
+    username: str
+    scopes: list[str]

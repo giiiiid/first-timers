@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from db.databaseConnect import Base
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class Admin(Base):
@@ -10,6 +10,7 @@ class Admin(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
     first_name = Column(String)
     last_name = Column(String)
+    username = Column(String)
     email = Column(String)
     password = Column(String)
     role = Column(String)
@@ -25,8 +26,8 @@ class AgendaDb(Base):
     title = Column(String, default="Agenda title")
     description = Column(String, default="A description")
     # url = Column(String)
-    created_at = Column(DateTime, default=datetime.now())
-    updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     admin_id = Column(Integer, ForeignKey("admin.id"))
 
     owner = relationship("Admin", back_populates="admin_agenda")
