@@ -49,7 +49,7 @@ async def login(form_data: LoginDb, db: Session = Depends(get_db)):
 
 
 # admin agendas
-@users.get("/v1/{admin_id}/agenda-list")
+@users.get("/v1/{admin_id}/agenda-list", tags=["Admin"])
 async def admin_agenda_list(admin_id: str, db: Session = Depends(get_db)):
     agendas = db.query(AgendaDb).filter(admin_id == AgendaDb.admin_id).all()
     return agendas

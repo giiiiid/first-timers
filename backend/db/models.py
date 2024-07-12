@@ -7,7 +7,7 @@ from datetime import datetime
 
 class Admin(Base):
     __tablename__ = "admin"
-    id = Column(Integer, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
     first_name = Column(String)
     last_name = Column(String)
     email = Column(String)
@@ -15,22 +15,22 @@ class Admin(Base):
     role = Column(String)
 
     # admin_forms = relationship("Forms", back_populates="owner")
-    admin_agenda = relationship("Admin", back_populates="owner")
+    admin_agenda = relationship("AgendaDb", back_populates="owner")
 
 
 
 class AgendaDb(Base):
     __tablename__ = "agenda"
-    id = Column(Integer, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
     title = Column(String, default="Agenda title")
     description = Column(String, default="A description")
     # url = Column(String)
-    admin_id = Column(Integer, ForeignKey("admin.id"))
     created_at = Column(DateTime, default=datetime.now())
     updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+    admin_id = Column(Integer, ForeignKey("admin.id"))
 
     owner = relationship("Admin", back_populates="admin_agenda")
-    agenda_forms = relationship("Forms", back_populates="assigned_agenda")
+    agenda_forms = relationship("FormsDb", back_populates="assigned_agenda")
     
 
 class FormsDb(Base):
@@ -46,5 +46,5 @@ class FormsDb(Base):
     brought_by = Column(String)
     agenda_id = Column(Integer, ForeignKey("agenda.id"))
 
-    assigned_agenda = relationship("Admin", back_populates="agenda_forms")
+    assigned_agenda = relationship("AgendaDb", back_populates="agenda_forms")
 
