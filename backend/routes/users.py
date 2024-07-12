@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from config.config import get_db, oauth2_scheme, SECRET_KEY, ALGORITHM
-from utils.schema import AdminIn, AdminOut, LoginDb, TokenData
-from utils.utils import get_password_hash, verify_password
+from config.config import get_db, oauth2_scheme, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRES_MINUTES
+from utils.schema import AdminIn, AdminOut, LoginDb, Token, TokenData
+from utils.utils import get_password_hash, verify_password, create_access_token
 from sqlalchemy.orm import Session
 from db.models import Admin, AgendaDb
 import jwt
 from jwt.exceptions import InvalidTokenError
+from datetime import  timedelta
 
 users = APIRouter()
 
@@ -61,7 +62,7 @@ async def get_current_active_admin(current_admin: Admin = Depends(get_current_ad
 # admin login
 @users.post("/v1/admin/login", tags=["Admin"])
 async def login(form_data: LoginDb, db: Session = Depends(get_db)):
-    admin = db.query(Admin).filter(form_data.email == Admin.email).first()
+    admin = db.query(Admin).filter(form_data.username == Admin.username).first()
     if not admin:
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,
@@ -76,6 +77,24 @@ async def login(form_data: LoginDb, db: Session = Depends(get_db)):
     return {"access_token": admin.first_name, "token": "bearer"}
 
 
+# login for access token
+@users.post("/v1/login")
+async def login_access_token(form_data: LoginDb, db: Session = Depends(get_db)):
+    admin = db.query(Admin).filter(form_data.username == Admin.username).first()
+    verified_password = verify_password(form_data.password, admin.password)
+    if not admin or verified_password:
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    acess_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES)
+    access_token = create_access_token(
+        data={"sub": admin.username}, expires_delta=acess_token_expires
+        )
+    return Token(access_token=access_token, token_type="bearer")
+
+    
 # admin agendas
 @users.get("/v1/{admin_id}/agenda-list", tags=["Admin"])
 async def admin_agenda_list(admin_id: str, db: Session = Depends(get_db)):

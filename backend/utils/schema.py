@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, Union
 
 
 # Admin BaseModel
@@ -19,7 +19,7 @@ class AdminOut(AdminModel):
 
 
 class LoginDb(BaseModel):
-    email: EmailStr
+    username: EmailStr
     password: str
 
 
@@ -43,5 +43,10 @@ class FormsModel(BaseModel):
 
 # Tokendata BaseModel
 class TokenData(BaseModel):
-    username: str
-    scopes: list[str]
+    username: Union[str, None] = None
+
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
