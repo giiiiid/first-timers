@@ -4,7 +4,7 @@ from config.config import get_db
 from utils.schema import AdminIn, AdminOut, LoginDb
 from utils.utils import get_password_hash, verify_password
 from sqlalchemy.orm import Session
-from db.models import Admin
+from db.models import Admin, AgendaDb
 
 
 users = APIRouter()
@@ -29,6 +29,7 @@ async def create_admin(userin: AdminIn, db: Session = Depends(get_db)):
     }
 
 
+# admin login
 @users.post("/v1/admin/login", tags=["Admin"])
 async def login(form_data: LoginDb, db: Session = Depends(get_db)):
     admin = db.query(Admin).filter(form_data.email == Admin.email).first()
@@ -45,3 +46,10 @@ async def login(form_data: LoginDb, db: Session = Depends(get_db)):
             )
     
     return {"access_token": admin.first_name, "token": "bearer"}
+
+
+# admin agendas
+@users.get("/v1/{admin_id}/agenda-list")
+async def admin_agenda_list(admin_id: str, db: Session = Depends(get_db)):
+    agendas = db.query(AgendaDb).filter(admin_id == AgendaDb.admin_id).all()
+    return agendas
