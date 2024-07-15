@@ -4,6 +4,7 @@ from typing import Optional, Union
 
 # Admin BaseModel
 class AdminModel(BaseModel):
+    username: str
     first_name: str
     last_name: str
     email: EmailStr
@@ -19,7 +20,7 @@ class AdminOut(AdminModel):
 
 
 class LoginDb(BaseModel):
-    username: EmailStr
+    username: str
     password: str
 
 
