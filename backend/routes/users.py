@@ -15,8 +15,8 @@ users = APIRouter()
 
 
 # Helper functions
-def get_admin(user: AdminIn, db: Session):
-    return db.query(Admin).filter(Admin.username == user.username).first()
+def get_admin(username: str, db: Session):
+    return db.query(Admin).filter(Admin.username == username).first()
 
 
 def authenticate_admin(username: str, password: str, db: Session):
@@ -31,7 +31,8 @@ def authenticate_admin(username: str, password: str, db: Session):
 def create_admin(user: AdminIn, db: Session):
     hashed_pwd = pwd_context.hash(user.password)
     db_admin = Admin(first_name=user.first_name, last_name=user.last_name, email=user.email,
-                     username=user.username, role=user.role, password=hashed_pwd)
+                     username=user.username, role=user.role, password=hashed_pwd
+                    )
     db.add(db_admin)
     db.commit()
     db.refresh(db_admin)
@@ -41,7 +42,7 @@ def create_admin(user: AdminIn, db: Session):
 # admin creation
 @users.post("/v1/admin/create", response_model=AdminOut, tags=["Admin"])
 async def create_admin_route(userin: AdminIn, db: Session = Depends(get_db)):
-    db_admin = get_admin(userin, db)
+    db_admin = get_admin(userin.username, db)
     if db_admin:
         raise HTTPException(status_code=400, detail="Username already exists")
     new_admin = create_admin(userin, db)
@@ -108,6 +109,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             headers={"WWW-Authenticate": "Bearer"}
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES)
-    access_token = create_access_token(data={"sub":admin.username}, expires_delta=access_token_expires)
+    access_token = await create_access_token(data={"sub":admin.username}, expires_delta=access_token_expires)
     
     return Token(access_token=access_token, token_type="bearer")

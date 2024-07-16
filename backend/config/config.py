@@ -39,6 +39,6 @@ settings = Settings()
 # Oauth setup
 oauth2_scheme = oauth2.OAuth2PasswordBearer(tokenUrl="token")
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRES_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRES_MINUTES")
+SECRET_KEY="9592cb2ce44b5d6cf3d8502d4526da89"
+ALGORITHM="HS256"
+ACCESS_TOKEN_EXPIRES_MINUTES=30
