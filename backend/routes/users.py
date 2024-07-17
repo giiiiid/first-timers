@@ -60,15 +60,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     
     return {"access_token":db_admin.username,"token":"bearer","message": "Login successfully"}
 
-    
-# admin agendas
-@users.get("/v1/{admin_id}/agenda-list", tags=["Admin"])
-async def admin_agenda_list(admin_id: str, db: Session = Depends(get_db)):
-    agendas = db.query(AgendaDb).filter(admin_id == AgendaDb.admin_id).all()
-    if agendas is None:
-        return {"message": "You do not have any agenda"}
-    return agendas
-
 
 # payload to get current admin
 async def get_current_admin(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
@@ -112,3 +103,27 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = await create_access_token(data={"sub":admin.username}, expires_delta=access_token_expires)
     
     return Token(access_token=access_token, token_type="bearer")
+
+
+# read admin
+@users.get("/v1/admin/me", response_model=AdminOut, tags=["Admin"])
+async def read_admin_me(current_admin: Admin = Depends(get_current_active_admin)):
+    return current_admin
+
+
+# admin agendas
+# @users.get("/v1/{admin_id}/agenda-list", tags=["Admin"])
+# async def admin_agenda_list(admin_id: str, db: Session = Depends(get_db)):
+#     current_admin = await get_current_admin(db, admin_id)
+#     agendas = db.query(AgendaDb).filter(admin_id == AgendaDb.admin_id).all()
+#     if agendas is None:
+#         return {"message": "You do not have any agenda"}
+#     return agendas
+
+
+@users.get("/v1/admin/agenda-list", tags=["Admin"])
+async def admin_agenda_list(current_admin: Admin = Depends(get_current_active_admin), db:Session = Depends(get_db)):
+    agendas = db.query(AgendaDb).filter(AgendaDb.admin_id==current_admin.id).all()
+    if agendas is None:
+        return {"message": "You do not have any agenda"}
+    return agendas
