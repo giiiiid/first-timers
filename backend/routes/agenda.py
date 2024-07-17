@@ -3,6 +3,7 @@ from utils.schema import AgendaModel
 from config.config import get_db
 from db.models import AgendaDb, Admin
 from sqlalchemy.orm import Session
+from .users import get_current_admin
 
 
 agenda = APIRouter()

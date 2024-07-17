@@ -91,8 +91,8 @@ async def get_current_active_admin(current_admin: Admin = Depends(get_current_ad
 
 # login for access token
 @users.post("/v1/admin/login/oauth", tags=["Oauth Login"])
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> Token:
-    admin = authenticate_admin(form_data.username, form_data.password, db)
+async def login_for_access_token(username:str, password:str, db: Session = Depends(get_db)) -> Token:
+    admin = authenticate_admin(username, password, db)
     if not admin:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -107,7 +107,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 # read admin
 @users.get("/v1/admin/me", response_model=AdminOut, tags=["Admin"])
-async def read_admin_me(current_admin: Admin = Depends(get_current_active_admin)):
+async def read_admin_me(current_admin: Admin = Depends(get_current_admin)):
     return current_admin
 
 
@@ -122,7 +122,7 @@ async def read_admin_me(current_admin: Admin = Depends(get_current_active_admin)
 
 
 @users.get("/v1/admin/agenda-list", tags=["Admin"])
-async def admin_agenda_list(current_admin: Admin = Depends(get_current_active_admin), db:Session = Depends(get_db)):
+async def admin_agenda_list(current_admin: Admin = Depends(get_current_admin), db:Session = Depends(get_db)):
     agendas = db.query(AgendaDb).filter(AgendaDb.admin_id==current_admin.id).all()
     if agendas is None:
         return {"message": "You do not have any agenda"}
