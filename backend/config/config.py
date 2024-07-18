@@ -42,3 +42,5 @@ oauth2_scheme = oauth2.OAuth2PasswordBearer(tokenUrl="token")
 SECRET_KEY="9592cb2ce44b5d6cf3d8502d4526da89"
 ALGORITHM="HS256"
 ACCESS_TOKEN_EXPIRES_MINUTES=30
+
+
