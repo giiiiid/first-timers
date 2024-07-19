@@ -10,11 +10,11 @@ agenda = APIRouter()
 
 
 # create agenda
-@agenda.post("/v1/{user_id}/agenda/create", response_model=AgendaModel, tags=["Agenda"])
-async def create_agenda(user_id: str, agenda_item: AgendaModel, db: Session = Depends(get_db)):
-    if not db.query(Admin).filter(user_id == Admin.id).first():
+@agenda.post("/v1/{user}/agenda/create", response_model=AgendaModel, tags=["Agenda"])
+async def create_agenda(agenda_item: AgendaModel, user: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
+    if not db.query(Admin).filter(user.id == AgendaDb.admin_id).first():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorised admin")
-    new_agenda = AgendaDb(title = agenda_item.title, description = agenda_item.description, admin_id = user_id)
+    new_agenda = AgendaDb(title = agenda_item.title, description = agenda_item.description, admin_id = user)
     db.add(new_agenda)
     db.commit()
     db.refresh(new_agenda)
@@ -23,13 +23,13 @@ async def create_agenda(user_id: str, agenda_item: AgendaModel, db: Session = De
 
 
 # view agenda
-@agenda.get("/v1/{user_id}/{agenda_id}", response_model=AgendaModel, tags=["Agenda"])
-async def retrieve_agenda(user_id: str, agenda_id: str, db: Session = Depends(get_db)):
-    if not db.query(Admin).filter(user_id == Admin.id).first():
+@agenda.get("/v1/{user}/{agenda_id}", response_model=AgendaModel, tags=["Agenda"])
+async def retrieve_agenda(agenda_id: str, user: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
+    if not db.query(Admin).filter(user.id == AgendaDb.admin_id).first():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorised user")
     if not db.query(AgendaDb).filter(agenda_id == AgendaDb.id).first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agenda not found")
-    selected_agenda = db.query(AgendaDb).filter(AgendaDb.id == agenda_id, AgendaDb.admin_id == user_id).first()
+    selected_agenda = db.query(AgendaDb).filter(AgendaDb.id == agenda_id, AgendaDb.admin_id == user).first()
     if selected_agenda is None:
         return {
           "status_code": status.HTTP_200_OK,
@@ -38,11 +38,10 @@ async def retrieve_agenda(user_id: str, agenda_id: str, db: Session = Depends(ge
     return selected_agenda
 
 # update agenda
-@agenda.put("/v1/{user_id}/{agenda_id}/update", response_model=AgendaModel, tags=["Agenda"])
-async def update_agenda(user_id: str, agenda_id: str, 
-                        agenda_item: AgendaModel, db: Session = Depends(get_db)):
-    selected_agenda = db.query(AgendaDb).filter(AgendaDb.id == agenda_id, 
-                                                AgendaDb.admin_id == user_id).first()
+@agenda.put("/v1/{user}/{agenda_id}/update", response_model=AgendaModel, tags=["Agenda"])
+async def update_agenda(agenda_id: str, agenda_item: AgendaModel, user: Admin = Depends(get_current_admin), 
+                            db: Session = Depends(get_db)):
+    selected_agenda = db.query(AgendaDb).filter(AgendaDb.id == agenda_id, AgendaDb.admin_id == user.id).first()
     if not selected_agenda:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail = "User or agenda could not be found")
@@ -56,9 +55,9 @@ async def update_agenda(user_id: str, agenda_id: str,
 
 
 # delete agenda
-@agenda.delete("/v1/{user_id}/{agenda_id}/update", tags=["Agenda"])
-async def delete_agenda(user_id: str, agenda_id: str, db: Session = Depends(get_db)):
-    selected_agenda = db.query(AgendaDb).filter(user_id == AgendaDb.admin_id, agenda_id == AgendaDb.id).first()
+@agenda.delete("/v1/{user}/{agenda_id}/update", tags=["Agenda"])
+async def delete_agenda(agenda_id: str, user: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
+    selected_agenda = db.query(AgendaDb).filter(user.id == AgendaDb.admin_id, agenda_id == AgendaDb.id).first()
     if not selected_agenda:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail = "User or agenda could not be found")
