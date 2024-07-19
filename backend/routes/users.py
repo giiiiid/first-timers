@@ -58,7 +58,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     if not verify_password(form_data.password, db_admin.password):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
-    return {"access_token":db_admin.username,"token":"bearer","message": "Login successfully"}
+    return {"access_token":db_admin.username, "id": db_admin.id, "token":"bearer","message": "Login successfully"}
 
 
 # payload to get current admin
