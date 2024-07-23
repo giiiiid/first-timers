@@ -18,7 +18,6 @@ users = APIRouter()
 def get_admin(username: str, db: Session):
     return db.query(Admin).filter(Admin.username == username).first()
 
-
 def authenticate_admin(username: str, password: str, db: Session):
     admin = get_admin(username, db)
     if not admin:
@@ -26,7 +25,6 @@ def authenticate_admin(username: str, password: str, db: Session):
     if not verify_password(password, admin.password):
         return False
     return admin
-
 
 def create_admin(user: AdminIn, db: Session):
     hashed_pwd = pwd_context.hash(user.password)

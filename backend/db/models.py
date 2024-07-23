@@ -40,7 +40,7 @@ class FormsDb(Base):
     name = Column(String)
     email = Column(String)
     phone_number = Column(String)
-    hostel_or_hall = Column(String)
+    residence = Column(String)
     room_number = Column(String)
     likes = Column(String)
     dislikes = Column(String)
