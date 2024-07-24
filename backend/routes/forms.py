@@ -9,7 +9,7 @@ forms = APIRouter()
 
 
 # create
-@forms.post("/v1/{agenda_id}/fill-form", response_model=FormsModel, tags="Forms")
+@forms.post("/v1/{agenda_id}/fill-form", response_model=FormsModel, tags=["Forms"])
 async def add_response(agenda_id: str, form: FormsModel, db: Session = Depends(get_db)):
     agenda = db.query(AgendaDb).filter(AgendaDb.id == agenda_id).first()
     if not agenda:
@@ -18,8 +18,8 @@ async def add_response(agenda_id: str, form: FormsModel, db: Session = Depends(g
             detail="Agenda could not be found"
         )
     new_form = FormsDb(name=form.name, email=form.email, phone_number=form.phone_number,
-                       residence=form.residence, room_number=form.room_number, llikes=form.likes,
-                       dislikes=form.dislikes, brought_by=form.brought_by
+                       residence=form.residence, room_number=form.room_number, likes=form.likes,
+                       dislikes=form.dislikes, brought_by=form.brought_by, agenda_id=agenda_id
             )
     db.add(new_form)
     db.commit()
@@ -56,7 +56,7 @@ async def retrieve_form(agenda_id: str, forms_id: str, db: Session = Depends(get
 
 
 # delete
-@forms.delete("/v1/{agenda_id}/{forms_id}/update", response_model=FormsModel, tags=["Agenda"])
+@forms.delete("/v1/{agenda_id}/{forms_id}/delete", response_model=FormsModel, tags=["Forms"])
 async def delete_agenda(agenda_id: str, forms_id: str, db: Session = Depends(get_db)):
     selected_agenda = db.query(FormsDb).filter(FormsDb.id == forms_id, FormsDb.agenda_id == agenda_id).first()
     if not selected_agenda:

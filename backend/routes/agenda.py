@@ -22,6 +22,18 @@ async def create_agenda(agenda_item: AgendaModel, user: Admin = Depends(get_curr
     return new_agenda
 
 
+@agenda.post("/v1/{user_id}/agenda/create", response_model=AgendaModel, tags=["Agenda-NoToken"])
+async def create_agenda(agenda_item: AgendaModel, user_id: str, db: Session = Depends(get_db)):
+    if not db.query(Admin).filter(user_id == Admin.id).first():
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorised admin")
+    new_agenda = AgendaDb(title = agenda_item.title, description = agenda_item.description, admin_id = user_id)
+    db.add(new_agenda)
+    db.commit()
+    db.refresh(new_agenda)
+
+    return new_agenda
+
+
 # view agenda
 @agenda.get("/v1/{user}/{agenda_id}", response_model=AgendaModel, tags=["Agenda"])
 async def retrieve_agenda(agenda_id: str, user: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):

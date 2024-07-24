@@ -44,7 +44,10 @@ async def create_admin_route(userin: AdminIn, db: Session = Depends(get_db)):
     if db_admin:
         raise HTTPException(status_code=400, detail="Username already exists")
     new_admin = create_admin(userin, db)
-    return new_admin
+    return {
+        "username": new_admin.username,
+        "id": new_admin.id
+    }
 
 
 # admin login
