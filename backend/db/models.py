@@ -36,7 +36,7 @@ class AgendaDb(Base):
 
 class FormsDb(Base):
     __tablename__ = "forms"
-    id = Column(Integer, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     name = Column(String)
     email = Column(String)
     phone_number = Column(String)
