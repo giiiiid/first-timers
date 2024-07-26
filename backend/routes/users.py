@@ -86,10 +86,10 @@ async def get_current_admin(db: Session = Depends(get_db), token: str = Depends(
 
 
 # get current active admin
-async def get_current_active_admin(current_admin: Admin = Depends(get_current_admin)):
-    if current_admin.disabled:
-        raise HTTPException(status_code=400, detail="Inactive admin")
-    return current_admin
+# async def get_current_active_admin(current_admin: Admin = Depends(get_current_admin)):
+#     if current_admin:
+#         raise HTTPException(status_code=400, detail="Inactive admin")
+#     return current_admin
 
 
 # login for access token
@@ -115,9 +115,9 @@ async def read_admin_me(current_admin: Admin = Depends(get_current_admin)):
 
 
 # admin agenda-list
-@users.get("/v1/admin/agenda-list", response_model=List[AgendaModel], tags=["Admin"])
+@users.get("/v1/admin/agenda-list", tags=["Admin"])
 async def admin_agenda_list(current_admin: Admin = Depends(get_current_admin), db:Session = Depends(get_db)):
     agendas = db.query(AgendaDb).filter(AgendaDb.admin_id==current_admin.id).all()
-    if agendas is None:
-        return {"message": "You do not have any agenda"}
+    if len(agendas) == 0:
+        return {"message": "You do not have any agenda yet"}
     return agendas
