@@ -29,3 +29,11 @@ async def create_access_token(data: dict, expires_delta: Union[timedelta, None] 
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm='HS256')
     return encoded_jwt
+
+
+async def decode_access_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms='HS256')
+        return payload
+    except jwt.PyJWTError:
+        return None
