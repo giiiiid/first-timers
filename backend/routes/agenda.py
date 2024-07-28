@@ -11,7 +11,7 @@ agenda = APIRouter()
 
 
 # create agenda
-@agenda.post("/v1/agenda/create", response_model=AgendaModel, tags=["Agenda"])
+@agenda.post("/v1/agendas/create", response_model=AgendaModel, tags=["Agenda"])
 async def create_agenda(agenda_item: AgendaModel, user: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
     if not db.query(Admin).filter(user.id == Admin.id).first():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorised admin")
@@ -24,13 +24,13 @@ async def create_agenda(agenda_item: AgendaModel, user: Admin = Depends(get_curr
 
 
 # view agenda
-@agenda.get("/v1/agenda/{agenda_id}", response_model=AgendaModel, tags=["Agenda"])
+@agenda.get("/v1/agendas/{agenda_id}", response_model=AgendaModel, tags=["Agenda"])
 async def retrieve_agenda(agenda_id: str, user: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
     if not db.query(Admin).filter(user.id == Admin.id).first():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorised user")
     if not db.query(AgendaDb).filter(agenda_id == AgendaDb.id).first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agenda not found")
-    selected_agenda = db.query(AgendaDb).filter(AgendaDb.id == agenda_id, AgendaDb.admin_id == user).first()
+    selected_agenda = db.query(AgendaDb).filter(AgendaDb.id == agenda_id, AgendaDb.admin_id == user.id).first()
     if selected_agenda is None:
         return {
           "status_code": status.HTTP_200_OK,
@@ -40,7 +40,7 @@ async def retrieve_agenda(agenda_id: str, user: Admin = Depends(get_current_admi
 
 
 # update agenda
-@agenda.put("/v1/agenda/{agenda_id}/update", response_model=AgendaModel, tags=["Agenda"])
+@agenda.put("/v1/agendas/{agenda_id}/update", response_model=AgendaModel, tags=["Agenda"])
 async def update_agenda(agenda_id: str, agenda_item: AgendaModel, user: Admin = Depends(get_current_admin), 
                             db: Session = Depends(get_db)):
     selected_agenda = db.query(AgendaDb).filter(AgendaDb.id == agenda_id, AgendaDb.admin_id == user.id).first()
@@ -57,7 +57,7 @@ async def update_agenda(agenda_id: str, agenda_item: AgendaModel, user: Admin = 
 
 
 # delete agenda
-@agenda.delete("/v1/agenda/{agenda_id}/delete", tags=["Agenda"])
+@agenda.delete("/v1/agendas/{agenda_id}/delete", tags=["Agenda"])
 async def delete_agenda(agenda_id: str, user: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
     selected_agenda = db.query(AgendaDb).filter(user.id == AgendaDb.admin_id, agenda_id == AgendaDb.id).first()
     if not selected_agenda:
