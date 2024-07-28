@@ -41,9 +41,6 @@ class FormsModel(BaseModel):
     dislikes: Optional[str]
     brought_by: str
 
-    class Config:
-        orm_mode = True
-
 
 # Tokendata BaseModel
 class TokenData(BaseModel):
