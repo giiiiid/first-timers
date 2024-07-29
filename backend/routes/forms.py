@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 forms = APIRouter()
 
 
-# create
+# create or add new form response
 @forms.post("/v1/{agenda_id}/fill-form", response_model=FormsModel, tags=["Forms"])
-async def add_response(agenda_id: str, form: FormsModel, db: Session = Depends(get_db)):
+async def add_form_response(agenda_id: str, form: FormsModel, db: Session = Depends(get_db)):
     agenda = db.query(AgendaDb).filter(AgendaDb.id == agenda_id).first()
     if not agenda:
         raise HTTPException(
@@ -18,8 +18,8 @@ async def add_response(agenda_id: str, form: FormsModel, db: Session = Depends(g
             detail="Agenda could not be found"
         )
     new_form = FormsDb(name=form.name, email=form.email, phone_number=form.phone_number,
-                       residence=form.residence, room_number=form.room_number, likes=form.likes,
-                       dislikes=form.dislikes, brought_by=form.brought_by, agenda_id=agenda_id
+                residence=form.residence, room_number=form.room_number, likes=form.likes,
+                dislikes=form.dislikes, brought_by=form.brought_by, agenda_id=agenda_id
             )
     db.add(new_form)
     db.commit()
@@ -27,19 +27,19 @@ async def add_response(agenda_id: str, form: FormsModel, db: Session = Depends(g
     return new_form
 
 
-# retrieve
+# retrieve a form response
 @forms.get("/v1/{agenda_id}/{form_id}", response_model=FormsModel, tags=["Forms"])
-async def retrieve_form(agenda_id: str, forms_id: str, db: Session = Depends(get_db)):
+async def retrieve_form(agenda_id: str, form_id: str, db: Session = Depends(get_db)):
     if not db.query(AgendaDb).filter(AgendaDb.id == agenda_id).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not be found")
-    if not db.query(FormsDb).filter(FormsDb.id == forms_id).first():
+    if not db.query(FormsDb).filter(FormsDb.id == form_id).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not be found")
     
-    selected_form =  db.query(FormsDb).filter(FormsDb.agenda_id==agenda_id, FormsDb.id==forms_id).first()
+    selected_form =  db.query(FormsDb).filter(FormsDb.agenda_id==agenda_id, FormsDb.id==form_id).first()
     return selected_form
 
 
-# update
+# update a form response
 # @forms.put("/v1/{agenda_id}/{forms_id}/update", response_model=FormsModel, tags=["Forms"])
 # async def update_agenda(agenda_id: str, forms_id: str, form: FormsModel, db: Session = Depends(get_db)):
 #     selected_forms = db.query(FormsDb).filter(FormsDb.id == forms_id, FormsDb.agenda_id == agenda_id).first()
@@ -55,10 +55,10 @@ async def retrieve_form(agenda_id: str, forms_id: str, db: Session = Depends(get
 #     return selected_forms
 
 
-# delete
-@forms.delete("/v1/{agenda_id}/{forms_id}/delete", response_model=FormsModel, tags=["Forms"])
-async def delete_agenda(agenda_id: str, forms_id: str, db: Session = Depends(get_db)):
-    selected_agenda = db.query(FormsDb).filter(FormsDb.id == forms_id, FormsDb.agenda_id == agenda_id).first()
+# delete a form response
+@forms.delete("/v1/{agenda_id}/{form_id}/delete", tags=["Forms"])
+async def delete_agenda(agenda_id: str, form_id: str, db: Session = Depends(get_db)):
+    selected_agenda = db.query(FormsDb).filter(FormsDb.id == form_id, FormsDb.agenda_id == agenda_id).first()
     if not selected_agenda:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail = "Form could not be found")

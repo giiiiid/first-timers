@@ -24,8 +24,8 @@ async def create_agenda(agenda_item: AgendaModel, user: Admin = Depends(get_curr
 
 
 # view agenda
-@agenda.get("/v1/agendas/{agenda_id}", response_model=AgendaModel, tags=["Agenda"])
-async def retrieve_agenda(agenda_id: str, user: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
+@agenda.get("/v1/agendas/{agenda_id}/get", response_model=AgendaModel, tags=["Agenda"])
+async def get_agenda(agenda_id: str, user: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
     if not db.query(Admin).filter(user.id == Admin.id).first():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorised user")
     if not db.query(AgendaDb).filter(agenda_id == AgendaDb.id).first():
