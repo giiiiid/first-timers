@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from routes import run, users, forms, agenda
-from db import models
+from models import models
 from db.databaseConnect import engine
 
 

@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from config.config import get_db, oauth2_scheme, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRES_MINUTES
-from utils.schema import AdminIn, AdminOut, LoginDb, Token, TokenData, AgendaModel
-from utils.utils import get_password_hash, verify_password, create_access_token, pwd_context
+from utils.schema import AdminIn, AdminOut, Token, TokenData
+from utils.utils import verify_password, create_access_token, pwd_context
 from sqlalchemy.orm import Session
-from db.models import Admin, AgendaDb
+from models.models import Admin, AgendaDb
 import jwt
-from typing import List
 from jwt.exceptions import InvalidTokenError
 from datetime import  timedelta
 
@@ -30,9 +29,10 @@ def authenticate_admin(username: str, password: str, db: Session):
 
 def create_admin(user: AdminIn, db: Session):
     hashed_pwd = pwd_context.hash(user.password)
-    db_admin = Admin(first_name=user.first_name, last_name=user.last_name, email=user.email,
-                     username=user.username, role=user.role, password=hashed_pwd
-                    )
+    db_admin = Admin(
+        first_name=user.first_name, last_name=user.last_name, email=user.email, 
+        username=user.username, role=user.role, password=hashed_pwd
+    )
     db.add(db_admin)
     db.commit()
     db.refresh(db_admin)
@@ -54,18 +54,26 @@ async def create_admin_route(userin: AdminIn, db: Session = Depends(get_db)):
 
 # admin login
 @users.post("/v1/admin/login", tags=["Admin"])
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(), 
+    db: Session = Depends(get_db)
+):
     db_admin = get_admin(form_data.username, db)
     if not db_admin:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     if not verify_password(form_data.password, db_admin.password):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
-    return {"access_token":db_admin.username, "id": db_admin.id, "token":"bearer","message": "Login successfully"}
+    return {
+        "access_token":db_admin.username, "id": db_admin.id, 
+        "token":"bearer", "message": "Login successfully"
+    }
 
 
 # payload to get current admin
-async def get_current_admin(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+async def get_current_admin(
+    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
     credentials_excepton = HTTPException(
         status_code = status.HTTP_401_UNAUTHORIZED,
         detail = "Could not validate credentials",
@@ -94,7 +102,10 @@ async def get_current_admin(db: Session = Depends(get_db), token: str = Depends(
 
 # login for access token
 @users.post("/v1/admin/login/oauth", tags=["Oauth Login"])
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> Token:
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), 
+    db: Session = Depends(get_db)
+) -> Token:
     admin = authenticate_admin(form_data.username, form_data.password, db)
     if not admin:
         raise HTTPException(
@@ -103,8 +114,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             headers={"WWW-Authenticate": "Bearer"}
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES)
-    access_token = await create_access_token(data={"sub":admin.username}, expires_delta=access_token_expires)
-    
+    access_token = await create_access_token(
+        data={"sub":admin.username}, expires_delta=access_token_expires
+    )
     return Token(access_token=access_token, token_type="bearer")
 
 
@@ -116,7 +128,10 @@ async def read_admin_me(current_admin: Admin = Depends(get_current_admin)):
 
 # admin agenda-list
 @users.get("/v1/admin/agenda-list", tags=["Admin"])
-async def admin_agenda_list(current_admin: Admin = Depends(get_current_admin), db:Session = Depends(get_db)):
+async def admin_agenda_list(
+    current_admin: Admin = Depends(get_current_admin), 
+    db:Session = Depends(get_db)
+):
     agendas = db.query(AgendaDb).filter(AgendaDb.admin_id==current_admin.id).all()
     if len(agendas) == 0:
         return {"message": "You do not have any agenda yet"}

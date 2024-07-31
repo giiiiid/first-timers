@@ -1,6 +1,6 @@
 from passlib.context import CryptContext
 from datetime import datetime, timezone, timedelta
-from config.config import SECRET_KEY, ALGORITHM
+from config.config import SECRET_KEY
 from typing import Union
 import jwt
 
