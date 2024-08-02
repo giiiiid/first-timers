@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from config.config import get_db, oauth2_scheme, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRES_MINUTES
 from utils.schema import AdminIn, AdminOut, Token, TokenData
-from utils.utils import verify_password, create_access_token, pwd_context
+from utils.utils import verify_password, create_access_token, pwd_context, write_notification
 from sqlalchemy.orm import Session
 from models.models import Admin, AgendaDb
 import jwt
@@ -16,11 +16,16 @@ users = APIRouter()
 
 
 # Helper functions
-def get_admin(username: str, db: Session):
+def get_admin_by_username(username: str, db: Session):
     return db.query(Admin).filter(Admin.username == username).first()
 
+
+def get_admin_by_email(email: str, db: Session):
+    return db.query(Admin).filter(Admin.email == email).first()
+
+
 def authenticate_admin(username: str, password: str, db: Session):
-    admin = get_admin(username, db)
+    admin = get_admin_by_username(username, db)
     if not admin:
         return False
     if not verify_password(password, admin.password):
@@ -40,16 +45,25 @@ def create_admin(user: AdminIn, db: Session):
 
 
 # admin creation
-@users.post("/v1/admin/create", response_model=AdminOut, tags=["Admin"])
-async def create_admin_route(userin: AdminIn, db: Session = Depends(get_db)):
-    db_admin = get_admin(userin.username, db)
+@users.post("/v1/admin/create", tags=["Admin"])
+async def create_admin_route(
+    userin: AdminIn, 
+    # background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    db_admin = get_admin_by_username(userin.username, db)
+    db_admin_email = get_admin_by_email(userin.email, db)
+
     if db_admin:
         raise HTTPException(status_code=400, detail="Username already exists")
+    if db_admin_email:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    if userin.password != userin.confirm_password:
+        raise HTTPException(status_code=404, detail="Passwords do not match")
+    
     new_admin = create_admin(userin, db)
-    return {
-        "username": new_admin.username,
-        "id": new_admin.id
-    }
+    # background_tasks.add_task(write_notification, new_admin.email, message="trial notif")
+    return new_admin
 
 
 # admin login
@@ -58,7 +72,7 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
 ):
-    db_admin = get_admin(form_data.username, db)
+    db_admin = get_admin_by_username(form_data.username, db)
     if not db_admin:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     if not verify_password(form_data.password, db_admin.password):
@@ -87,7 +101,7 @@ async def get_current_admin(
         token_data = TokenData(username = username)
     except InvalidTokenError:
         raise credentials_excepton
-    admin = get_admin(username=token_data.username, db=db)
+    admin = get_admin_by_username(username=token_data.username, db=db)
     if admin is None:
         raise credentials_excepton
     return admin

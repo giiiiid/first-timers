@@ -1,4 +1,5 @@
 from passlib.context import CryptContext
+from fastapi import BackgroundTasks
 from datetime import datetime, timezone, timedelta
 from config.config import SECRET_KEY
 from typing import Union
@@ -37,3 +38,9 @@ async def decode_access_token(token: str):
         return payload
     except jwt.PyJWTError:
         return None
+
+
+def write_notification(email: str, message=""):
+    with open("log.txt", mode="w") as email_file:
+        content = f"Gideon from GIC for {email}: {message}"
+        email_file.write(content)

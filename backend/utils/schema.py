@@ -13,6 +13,7 @@ class AdminModel(BaseModel):
 
 class AdminIn(AdminModel):
     password: str
+    confirm_password: str
 
 
 class AdminOut(AdminModel):
