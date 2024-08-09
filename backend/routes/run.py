@@ -5,7 +5,7 @@ from fastapi import status
 run = APIRouter()
 
 
-@run.get("/")
+@run.get("/", tags=["App Status"])
 async def check_app_status():
     return{
         "status_code": status.HTTP_200_OK,

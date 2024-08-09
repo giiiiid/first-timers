@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, status, HTTPException, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from config.config import get_db, oauth2_scheme, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRES_MINUTES
-from utils.schema import AdminIn, AdminOut, Token, TokenData
-from utils.utils import verify_password, create_access_token, pwd_context, write_notification
+from utils.schema import *
+from utils.main_utils import verify_password, create_access_token, pwd_context
+from utils.email_utils import send_email, send_password_reset_request_email
+from utils.password_reset import generate_password_reset_token
 from sqlalchemy.orm import Session
 from models.models import Admin, AgendaDb
 import jwt
@@ -56,13 +58,20 @@ async def create_admin_route(
 
     if db_admin:
         raise HTTPException(status_code=400, detail="Username already exists")
-    if db_admin_email:
-        raise HTTPException(status_code=400, detail="Email already exists")
+    # if db_admin_email:
+    #     raise HTTPException(status_code=400, detail="Email already exists")
     if userin.password != userin.confirm_password:
         raise HTTPException(status_code=404, detail="Passwords do not match")
     
+    await send_email(
+        subject="We're happy to have you worship with us",
+        email_to=userin.email,
+        # template="first-timers/backend/utils/templates/new_admin_notification.html",
+        # context={"name": userin.username, "email": userin.email}
+    )
     new_admin = create_admin(userin, db)
-    # background_tasks.add_task(write_notification, new_admin.email, message="trial notif")
+
+    # background_tasks.add_task(send_notification, new_admin.email, message="trial notif")
     return new_admin
 
 
@@ -150,3 +159,26 @@ async def admin_agenda_list(
     if len(agendas) == 0:
         return {"message": "You do not have any agenda yet"}
     return agendas
+
+
+@users.post("/v1/admin/reset-password", tags=["Admin"])
+async def password_reset_request(
+    reset_request: PasswordResetRequest,
+    db: Session = Depends(get_db)
+):
+    admin = db.query(Admin).filter(Admin.email == reset_request.email).first()
+    if not admin:
+        raise HTTPException(
+            status_code = 200,
+            detail= "Admin not found"
+        )
+    token = generate_password_reset_token(admin.email)
+    reset_url = f"http://127.0.0.1:8000/v1/admin/password-reset/{token}"
+
+    await send_password_reset_request_email(
+        subject="Reset Your Password",
+        email_to=admin.email,
+        template="backend/utils/templates/password_reset_request.html",
+        context={"reset_url": reset_url}
+    )
+    return {"message": "Password reset email sent"}

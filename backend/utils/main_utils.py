@@ -40,7 +40,7 @@ async def decode_access_token(token: str):
         return None
 
 
-def write_notification(email: str, message=""):
-    with open("log.txt", mode="w") as email_file:
-        content = f"Gideon from GIC for {email}: {message}"
-        email_file.write(content)
+# def send_notification(email: str, message=""):
+#     with open("log.txt", mode="w") as email_file:
+#         content = f"Gideon from GIC for {email}: {message}"
+#         email_file.write(content)

@@ -52,3 +52,12 @@ class TokenData(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: str
+    
+
+class PasswordResetRequestForm(BaseModel):
+    password: str
+    confirm_password: str
